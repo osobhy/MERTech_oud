@@ -46,12 +46,23 @@ if not os.path.exists(out_model_fn):
 wav_dir = DATASET + '/data'
 csv_dir = DATASET + '/labels'
 
-groups = ['train']
-vali_groups = ['validation']
+# use 5-fold cross validation on the union of train and validation sets
+all_groups = ['train', 'validation']
+Xall, Yall, Yall_p, Yall_o, avg, std = load(wav_dir, csv_dir, all_groups)
 
-Xtr,Ytr,Ytr_p,Ytr_o,avg,std = load(wav_dir,csv_dir,groups)
-Xva,Yva,Yva_p,Yva_o,va_avg,va_std = load(wav_dir,csv_dir,vali_groups,avg,std)
-print ('finishing data loading...')
+from sklearn.model_selection import KFold
+
+fold = int(os.getenv('FOLD', '0'))
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+indices = np.arange(len(Xall))
+for i, (train_idx, val_idx) in enumerate(kf.split(indices)):
+    if i == fold:
+        tr_idx, va_idx = train_idx, val_idx
+        break
+
+Xtr, Ytr, Ytr_p, Ytr_o = Xall[tr_idx], Yall[tr_idx], Yall_p[tr_idx], Yall_o[tr_idx]
+Xva, Yva, Yva_p, Yva_o = Xall[va_idx], Yall[va_idx], Yall_p[va_idx], Yall_o[va_idx]
+print(f'finishing data loading... fold {fold}')
 
 processor = Wav2Vec2FeatureExtractor.from_pretrained(URL, trust_remote_code=True)
 Xtrs = processor(Xtr, sampling_rate=MERT_SAMPLE_RATE, return_tensors="pt")
@@ -73,4 +84,4 @@ inverse_feq = get_weight(Ytr.transpose(0,2,1))
 
 #Start training
 Trer = Trainer(model, 1e-3, 500, out_model_fn, validation_interval=5, save_interval=100) #0.01
-Trer.fit(tr_loader, va_loader,inverse_feq)
+Trer.fit(tr_loader, va_loader, inverse_feq)
