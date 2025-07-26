@@ -67,19 +67,16 @@ class Trainer:
         best_acc = 0
         last_best_epoch = 1 #for early stopping
 
+        model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
+        optimizer = optim.SGD(model_parameters, lr=lr, momentum=0.9, weight_decay=1e-4)
+        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.epoch * len(tr_loader))
+
         for e in range(1, self.epoch+1):
             # Wheter there is a two-step fine-tuning process
             if TWO_STEP and (e > LIN_EPOCH) and FREEZE_ALL:
                 for p in self.model.frontend.parameters():
                     p.requires_grad = True
                     self.model.frontend.model.feature_extractor._freeze_parameters()
-
-            model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
-            optimizer = optim.SGD(model_parameters, lr=lr, momentum=0.9, weight_decay=1e-4)
-            lrf = 0.01
-            epochs = 100
-            lf = lambda x: ((1 + math.cos(x * math.pi / epochs)) / 2) * (1 - lrf) + lrf  # cosine
-            scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
 
             loss_total_p = 0
             loss_total_i = 0
