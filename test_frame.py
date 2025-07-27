@@ -10,6 +10,7 @@ from function.load_data import *
 import numpy as np
 import random
 import os
+from transformers import Wav2Vec2FeatureExtractor
 
 def start_test():
     def get_random_seed(seed):
