@@ -10,13 +10,6 @@ from function.load_data import *
 import numpy as np
 import random
 import os
-import argparse
-from transformers import Wav2Vec2FeatureExtractor
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--ckpt",     required=True)
-args = parser.parse_args()
-
 
 def start_test():
     def get_random_seed(seed):
@@ -31,7 +24,7 @@ def start_test():
 
     #load model
     model = SSLNet(url=URL, class_num=NUM_LABELS*(MAX_MIDI-MIN_MIDI+1), weight_sum=1, freeze_all=FREEZE_ALL).to(device)
-    state_dict = torch.load(args.ckpt, map_location="cpu")
+    state_dict = torch.load('data/model/mul_onset_share_weight_detach_ft(final)/mul_onset_share_weight_detach_ft-MERT-v1-95M/best_e_1970',map_location="cpu")
     model.load_state_dict(state_dict)
 
     print('finishing loading model')
@@ -110,13 +103,13 @@ def start_test():
     print("IPT_note_recall:", metrics['metric/note/recall'])
     print("IPT_note_f1:", metrics['metric/note/f1'])
 
-    metrics0, _ = compute_metrics_with_note(pred_IPT[0, :].reshape((1, -1)), target_IPT[0, :].reshape((1, -1)), pred_onset, tar_onset)
-    metrics1, _ = compute_metrics_with_note(pred_IPT[1, :].reshape((1, -1)), target_IPT[1, :].reshape((1, -1)), pred_onset, tar_onset)
-    metrics2, _ = compute_metrics_with_note(pred_IPT[2, :].reshape((1, -1)), target_IPT[2, :].reshape((1, -1)), pred_onset, tar_onset)
-    metrics3, _ = compute_metrics_with_note(pred_IPT[3, :].reshape((1, -1)), target_IPT[3, :].reshape((1, -1)), pred_onset, tar_onset)
-    metrics4, _ = compute_metrics_with_note(pred_IPT[4, :].reshape((1, -1)), target_IPT[4, :].reshape((1, -1)), pred_onset, tar_onset)
-    metrics5, _ = compute_metrics_with_note(pred_IPT[5, :].reshape((1, -1)), target_IPT[5, :].reshape((1, -1)), pred_onset, tar_onset)
-    metrics6, _ = compute_metrics_with_note(pred_IPT[6, :].reshape((1, -1)), target_IPT[6, :].reshape((1, -1)), pred_onset, tar_onset)
+    metrics0, _ = compute_metrics_with_note(pred_IPT[0, :].reshape((1, -1)), target_IPT[0, :].reshape((1, -1)), pred_onset, tar_onset[0, :].reshape((1, -1)))
+    metrics1, _ = compute_metrics_with_note(pred_IPT[1, :].reshape((1, -1)), target_IPT[1, :].reshape((1, -1)), pred_onset, tar_onset[1, :].reshape((1, -1)))
+    metrics2, _ = compute_metrics_with_note(pred_IPT[2, :].reshape((1, -1)), target_IPT[2, :].reshape((1, -1)), pred_onset, tar_onset[2, :].reshape((1, -1)))
+    metrics3, _ = compute_metrics_with_note(pred_IPT[3, :].reshape((1, -1)), target_IPT[3, :].reshape((1, -1)), pred_onset, tar_onset[3, :].reshape((1, -1)))
+    metrics4, _ = compute_metrics_with_note(pred_IPT[4, :].reshape((1, -1)), target_IPT[4, :].reshape((1, -1)), pred_onset, tar_onset[4, :].reshape((1, -1)))
+    metrics5, _ = compute_metrics_with_note(pred_IPT[5, :].reshape((1, -1)), target_IPT[5, :].reshape((1, -1)), pred_onset, tar_onset[5, :].reshape((1, -1)))
+    metrics6, _ = compute_metrics_with_note(pred_IPT[6, :].reshape((1, -1)), target_IPT[6, :].reshape((1, -1)), pred_onset, tar_onset[6, :].reshape((1, -1)))
 
     print("vibrato_frame_f1:", metrics0['metric/IPT_frame/f1'])
     print("vibrato_note_f1:", metrics0['metric/note/f1'])
